@@ -13,6 +13,9 @@ public:
     vec3 p;
     vec3 normal;
     material* mat_ptr;
+    __device__ isect() {
+        t = -1.0;
+    }
 };
 
 class SceneObject {

@@ -19,21 +19,12 @@ void check_cuda(cudaError_t result, char const* const func, const char* const fi
         exit(99);
     }
 }
-/*
-__global__ void render(float* fb, int max_x, int max_y) {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
-    int j = threadIdx.y + blockIdx.y * blockDim.y;
-    if ((i >= max_x) || (j >= max_y)) return;
-    int pixel_index = j * max_x * 3 + i * 3;
-    fb[pixel_index + 0] = float(i) / max_x;
-    fb[pixel_index + 1] = float(j) / max_y;
-    fb[pixel_index + 2] = 0.2;
-}
-*/
+
 __global__ void create_world(SceneObject** sceneObjects) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
         material mat1(vec3(0.7, 1.0, 0.3));
-        *(sceneObjects) = new Sphere(vec3(600, 400, 400), 200, &mat1);
+        *(sceneObjects) = new Floor();
+        *(sceneObjects + 1) = new Sphere(vec3(600, 400, 400), 200, &mat1);
     }
 }
 
@@ -49,14 +40,22 @@ __device__ vec3 color(const ray& r, SceneObject** sceneObjects) {
     vec3 cur_attenuation = vec3(0.0, 0.0, 0.0);
     for (int i = 0; i < 1; i++) {
         isect is;
+        bool intersectFound = false;
+        isect curIs;
         //go through all scene objects
         
-        for (int j = 0; j < 1; j++) {
-            if (sceneObjects[j]->intersects(cur_ray, 0.001f, FLT_MAX, is)) {
-                //cur_attenuation = vec3(0, 0, 0);
-                cur_attenuation = is.mat_ptr->shade(r, is);
+        for (int j = 0; j < 2; j++) {
+            if (sceneObjects[j]->intersects(cur_ray, 0.001f, FLT_MAX, curIs)) {
+                if (!intersectFound || curIs.t < is.t) {
+                    intersectFound = true;
+                    is = curIs;
+                }
             }
         }
+        if (!intersectFound) {
+            break;
+        }
+        cur_attenuation = is.mat_ptr->shade(r, is);
     }
     return cur_attenuation;
 }
@@ -91,10 +90,9 @@ int main() {
     //lower left is (0, 0, 0), screen plane is x and y axis
     
     SceneObject** sceneObjects;
-    int numObjects = 1;
+    int numObjects = 2;
     checkCudaErrors(cudaMalloc((void**)&sceneObjects, numObjects * sizeof(SceneObject*)));
     create_world << <1, 1 >> > (sceneObjects);
-    //sceneObjects[0]->test();
 
     // allocate FB
     vec3* fb;

@@ -9,7 +9,7 @@ class Sphere : public SceneObject
 public:
 	__device__ Sphere() {}
     __device__ Sphere(vec3 c, float r) : center(c), radius(r) {}
-    __device__ bool intersect(const ray& r, float t_min, float t_max, isect& i) const {
+    __device__ bool intersects(const ray& r, float t_min, float t_max, isect& i) const {
         vec3 oc = r.origin() - center;
         float a = dot(r.direction(), r.direction());
         float b = dot(oc, r.direction());

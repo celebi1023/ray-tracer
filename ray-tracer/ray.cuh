@@ -16,12 +16,5 @@ public:
     vec3 dir;
 };
 
-class isect
-{
-public:
-    float t;
-    vec3 p;
-    vec3 normal;
-};
 
 #endif

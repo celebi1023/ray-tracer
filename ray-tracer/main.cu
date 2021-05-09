@@ -32,7 +32,8 @@ __global__ void render(float* fb, int max_x, int max_y) {
 */
 __global__ void create_world(SceneObject** sceneObjects) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
-        *(sceneObjects) = new Sphere(vec3(600, 400, 400), 200);
+        material mat1(vec3(0.7, 1.0, 0.3));
+        *(sceneObjects) = new Sphere(vec3(600, 400, 400), 200, &mat1);
     }
 }
 
@@ -45,14 +46,15 @@ __global__ void free_world(SceneObject** sceneObjects) {
 
 __device__ vec3 color(const ray& r, SceneObject** sceneObjects) {
     ray cur_ray = r;
-    vec3 cur_attenuation = vec3(1.0, 1.0, 1.0);
+    vec3 cur_attenuation = vec3(0.0, 0.0, 0.0);
     for (int i = 0; i < 1; i++) {
         isect is;
         //go through all scene objects
         
         for (int j = 0; j < 1; j++) {
             if (sceneObjects[j]->intersects(cur_ray, 0.001f, FLT_MAX, is)) {
-                cur_attenuation = vec3(0, 0, 0);
+                //cur_attenuation = vec3(0, 0, 0);
+                cur_attenuation = is.mat_ptr->shade(r, is);
             }
         }
     }
@@ -67,7 +69,7 @@ __global__ void render(vec3* fb, int max_x, int max_y, SceneObject** sceneObject
     vec3 col(0, 0, 0);
     vec3 cameraPos(600, 400, -400);
     vec3 screenPos(i, j, 0);
-    ray r(cameraPos, screenPos - cameraPos);
+    ray r(cameraPos, unit_vector(screenPos - cameraPos));
     col = color(r, sceneObjects);
     fb[pixel_index] = col;
 }

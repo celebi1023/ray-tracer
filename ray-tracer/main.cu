@@ -1,11 +1,11 @@
 ﻿#include <iostream>
 #include <fstream>
 #include <time.h>
-#include <glm/vec3.hpp>
 
 #include "ray.cuh"
 #include "scene.cuh"
 #include "material.cuh"
+#include "shapes.cuh"
 
 // limited version of checkCudaErrors from helper_cuda.h in CUDA examples
 #define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
@@ -30,6 +30,13 @@ __global__ void render(float* fb, int max_x, int max_y) {
     fb[pixel_index + 2] = 0.2;
 }
 
+__global__ void create_world(SceneObject** sceneObjects) {
+    if (threadIdx.x == 0 && blockIdx.x == 0) {
+        *(sceneObjects) = new Sphere(vec3(0, 0, -1), 0.5);
+    }
+}
+
+
 int main() {
     int nx = 1200;
     int ny = 600;
@@ -41,6 +48,13 @@ int main() {
 
     int num_pixels = nx * ny;
     size_t fb_size = 3 * num_pixels * sizeof(float);
+
+    //screen
+    //lower left is (0, 0, 0), screen plane is x and y axis
+    
+    SceneObject** sceneObjects;
+    int numObjects = 1;
+    checkCudaErrors(cudaMalloc((void**)&sceneObjects, numObjects * sizeof(SceneObject*)));
 
     // allocate FB
     float* fb;

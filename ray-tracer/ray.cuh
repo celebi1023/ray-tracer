@@ -1,26 +1,27 @@
 ﻿#ifndef RAYH
 #define RAYH
 
-#include <glm/vec3.hpp>
+#include "vec3.cuh"
 
 class ray
 {
 public:
     __device__ ray() {}
-    __device__ ray(const glm::vec3& a, const glm::vec3& b) { source = a; dir = b; }
-    __device__ glm::vec3 origin() const { return source; }
-    __device__ glm::vec3 direction() const { return dir; }
-    __device__ glm::vec3 point_at_parameter(float t) const { return source + t * dir; }
+    __device__ ray(const vec3& a, const vec3& b) { source = a; dir = b; }
+    __device__ vec3 origin() const { return source; }
+    __device__ vec3 direction() const { return dir; }
+    __device__ vec3 point_at_parameter(float t) const { return source + t * dir; }
 
-    glm::vec3 source;
-    glm::vec3 dir;
+    vec3 source;
+    vec3 dir;
 };
 
 class isect
 {
-private:
-    double t;
-    glm::vec3 N;
+public:
+    float t;
+    vec3 p;
+    vec3 normal;
 };
 
 #endif

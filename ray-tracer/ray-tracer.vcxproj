@@ -17,6 +17,8 @@
     <ClInclude Include="material.cuh" />
     <ClInclude Include="ray.cuh" />
     <ClInclude Include="scene.cuh" />
+    <ClInclude Include="shapes.cuh" />
+    <ClInclude Include="vec3.cuh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CC1F9454-E136-40B4-BB9B-83AC85F56711}</ProjectGuid>

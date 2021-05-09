@@ -4,6 +4,8 @@
 #include <glm/vec3.hpp>
 
 #include "ray.cuh"
+#include "scene.cuh"
+#include "material.cuh"
 
 // limited version of checkCudaErrors from helper_cuda.h in CUDA examples
 #define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )

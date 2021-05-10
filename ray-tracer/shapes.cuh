@@ -118,4 +118,96 @@ private:
     vec3 p2;
     material* mat_ptr;
 };
+
+//axis aligned
+class Box : public SceneObject
+{
+public:
+    __device__ Box() {}
+    __device__ Box(vec3 min_, vec3 max_, material* m) : min(min_), max(max_), mat_ptr(m) {}
+    __device__ bool intersects(const ray& r, float t_min, float t_max, isect& i) const {
+        float t = -1;
+        float curT = -1;
+        vec3 v = r.direction();
+        vec3 p = r.origin();
+        //face zmin
+        curT = (min.z() - p.z()) / v.z();
+        if (curT >= 0) {
+            //point of intersection
+            vec3 point = v * curT + p;
+            if (min.x() <= point.x() && point.x() <= max.x() && min.y() <= point.y() && point.y() <= max.y()) {
+                if (t == -1 || curT < t) {
+                    t = curT;
+                    i.normal = vec3(0, 0, -1);
+                    //i.normal = vec3(0, 1, 0); // for testing
+                }
+            }
+        }
+        //face zmax
+        curT = (max.z() - p.z()) / v.z();
+        if (curT >= 0) {
+            vec3 point = v * curT + p;
+            if (min.x() <= point.x() && point.x() <= max.x() && min.y() <= point.y() && point.y() <= max.y()) {
+                if (t == -1 || curT < t) {
+                    t = curT;
+                    i.normal = vec3(0, 0, 1);
+                }
+            }
+        }
+        //face ymin
+        curT = (min.y() - p.y()) / v.y();
+        if (curT >= 0) {
+            vec3 point = v * curT + p;
+            if (min.x() <= point.x() && point.x() <= max.x() && min.z() <= point.z() && point.z() <= max.z()) {
+                if (t == -1 || curT < t) {
+                    t = curT;
+                    i.normal = vec3(0, -1, 0);
+                }
+            }
+        }
+        //face ymax
+        curT = (max.y() - p.y()) / v.y();
+        if (curT >= 0) {
+            vec3 point = v * curT + p;
+            if (min.x() <= point.x() && point.x() <= max.x() && min.z() <= point.z() && point.z() <= max.z()) {
+                if (t == -1 || curT < t) {
+                    t = curT;
+                    i.normal = vec3(0, 1, 0);
+                }
+            }
+        }
+        //face xmin
+        curT = (min.x() - p.x()) / v.x();
+        if (curT >= 0) {
+            vec3 point = v * curT + p;
+            if (min.y() <= point.y() && point.y() <= max.y() && min.z() <= point.z() && point.z() <= max.z()) {
+                if (t == -1 || curT < t) {
+                    t = curT;
+                    i.normal = vec3(-1, 0, 0);
+                }
+            }
+        }
+        //face xmax
+        curT = (max.x() - p.x()) / v.x();
+        if (curT >= 0) {
+            vec3 point = v * curT + p;
+            if (min.y() <= point.y() && point.y() <= max.y() && min.z() <= point.z() && point.z() <= max.z()) {
+                if (t == -1 || curT < t) {
+                    t = curT;
+                    i.normal = vec3(1, 0, 0);
+                }
+            }
+        }
+        if (t == -1)
+            return false;
+        i.t = t;
+        i.p = v * t + p;
+        i.mat_ptr = mat_ptr;
+        return true;
+    }
+private:
+    vec3 min;
+    vec3 max;
+    material* mat_ptr;
+};
 #endif

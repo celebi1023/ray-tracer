@@ -25,6 +25,7 @@ __global__ void create_world(SceneObject** sceneObjects) {
         material mat1(vec3(0.7, 1.0, 0.3));
         *(sceneObjects) = new Floor();
         *(sceneObjects + 1) = new Sphere(vec3(600, 400, 400), 200, &mat1);
+        *(sceneObjects + 2) = new Box(vec3(1000, 10, 400), vec3(1300, 310, 700), &mat1);
     }
 }
 
@@ -44,7 +45,7 @@ __device__ vec3 color(const ray& r, SceneObject** sceneObjects) {
         isect curIs;
         //go through all scene objects
         
-        for (int j = 0; j < 2; j++) {
+        for (int j = 0; j < 3; j++) {
             if (sceneObjects[j]->intersects(cur_ray, 0.001f, FLT_MAX, curIs)) {
                 if (!intersectFound || curIs.t < is.t) {
                     intersectFound = true;
@@ -90,7 +91,7 @@ int main() {
     //lower left is (0, 0, 0), screen plane is x and y axis
     
     SceneObject** sceneObjects;
-    int numObjects = 2;
+    int numObjects = 3;
     checkCudaErrors(cudaMalloc((void**)&sceneObjects, numObjects * sizeof(SceneObject*)));
     create_world << <1, 1 >> > (sceneObjects);
 

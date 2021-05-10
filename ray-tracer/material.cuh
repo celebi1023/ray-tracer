@@ -6,7 +6,7 @@
 
 class material {
 public:
-    __device__ material(const vec3& ka, const vec3& kd) : ka(ka), kd(kd) {}
+    __device__ material(const vec3& ka_, const vec3& kd_) : ka(ka_), kd(kd_) {}
     __device__ vec3 shade(const ray& r, const isect& i) {
         vec3 result(0.0, 0.0, 0.0);
         //for now, light will be directional from up top (goes in -y direction)
@@ -19,6 +19,7 @@ public:
         // TODO: need to be able to access scene object to go through light sources
         //       and calculate intersections of shadow rays
 
+        //kd = vec3(1.0, 1.0, 1.0);
         vec3 diffuse = kd * light_in * max(dot(dir, i.normal), 0.0);
         vec3 ambient(0.3, 0.3, 0.3);
         return diffuse + ambient * ka;

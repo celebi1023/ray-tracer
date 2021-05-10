@@ -23,11 +23,12 @@ void check_cuda(cudaError_t result, char const* const func, const char* const fi
 
 __global__ void create_world(SceneObject** sceneObjects) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
-        material mat1(vec3(0.7, 1.0, 0.3), vec3(0.7, 1.0, 0.3));
-        material mat2(vec3(1.0, 0.35, 0.5), vec3(1.0, 0.35, 0.5));
+        //material mat1(vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0));
+        material* mat1 = new material(vec3(0.4, 0.6, 0.3), vec3(0.7, 1.0, 0.5));
+        //material mat2(vec3(1.0, 0.35, 0.5), vec3(1.0, 0.35, 0.5));
         *(sceneObjects) = new Floor();
-        *(sceneObjects + 1) = new Sphere(vec3(600, 400, 400), 200, &mat1);
-        *(sceneObjects + 2) = new Box(vec3(1000, 10, 400), vec3(1300, 310, 700), &mat2);
+        *(sceneObjects + 1) = new Sphere(vec3(600, 400, 400), 200, mat1);
+        *(sceneObjects + 2) = new Box(vec3(1000, 10, 400), vec3(1300, 310, 700), mat1);
     }
 }
 
@@ -76,7 +77,16 @@ __global__ void render(vec3* fb, int max_x, int max_y, SceneObject** sceneObject
     float x = (i + 0.5) / max_x - 0.5;  // normalized to [-0.5, 0.5]
     float y = (j + 0.5) / max_y - 0.5;
     ray r(cameraPos, unit_vector(look + (x * u) + (y * v)));
-    
+    /*
+    float fov = 30;
+    float aspectratio = max_x / float(max_y);
+    float M_PI = 3.141592653589793;
+    float angle = tan(M_PI * 0.5 * fov / 180);
+    float xx = (2 * ((i + 0.5) / float(max_x)) - 1) * angle * aspectratio;
+    float yy = (1 - 2 * ((j + 0.5) / float(max_y))) * angle;
+    vec3 dir = unit_vector(vec3(xx, yy, 1));
+    ray r(cameraPos, dir);
+    */
     vec3 col = color(r, sceneObjects);
     int pixel_index = j * max_x + i;
     fb[pixel_index] = col;
@@ -97,6 +107,9 @@ int main() {
 
     //screen
     //lower left is (0, 0, 0), screen plane is x and y axis
+
+    vec3 testVec = vec3(1.0, 1.0, 1.0) * vec3(1.0, 1.0, 1.0);
+    std::cout << testVec.x() << " " << testVec.y() << " " << testVec.z() << "\n";
     
     SceneObject** sceneObjects;
     int numObjects = 3;

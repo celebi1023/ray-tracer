@@ -78,4 +78,44 @@ private:
     vec3 normal;
 };
 
+class Cylinder : public SceneObject
+{
+public:
+    __device__ Cylinder() {}
+    __device__ Cylinder(vec3 p1_, vec3 p2_, float r, material* m) : p1(p1_), p2(p2_), radius(r), mat_ptr(m) {}
+    __device__ bool intersects(const ray& r, float t_min, float t_max, isect& i) const {
+        float t = -1;
+        //shaft
+        //line from p1 to p2
+        vec3 va = unit_vector(p2 - p1);
+        vec3 pa = p1;
+        vec3 v = r.direction();
+        vec3 p = r.origin();
+        vec3 dp = p - pa; //delta p
+        vec3 tempA = v - dot(v, va) * va;
+        float A = dot(tempA, tempA);
+        float B = 2 * dot(v - dot(v, va) * va, dp - dot(dp, va) * va);
+        vec3 tempC = dp - dot(dp, va) * va;
+        float C = dot(tempC, tempC) - radius * radius;
+        float discr = B * B - 4 * A * C;
+        if (discr >= 0) {
+            float t1 = (-B + sqrt(discr)) / 2;
+            if (t1 >= 0 && dot(va, p + v * t1) > 0 && dot(va, p + v * t1) < 0 && (t == -1 || t1 < t)) {
+                t = t1;
+            }
+            float t2 = (-B - sqrt(discr)) / 2;
+            if (t2 >= 0 && dot(va, p + v * t2) > 0 && dot(va, p + v * t2) < 0 && (t == -1 || t2 < t)) {
+                t = t2;
+            }
+            //todo: get normals
+        }
+        //todo: caps
+        return t == -1;
+    }
+private:
+    float radius;
+    vec3 p1;
+    vec3 p2;
+    material* mat_ptr;
+};
 #endif

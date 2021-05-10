@@ -41,6 +41,7 @@ __host__ SceneObject** parse() {
 		return nullptr;
 	}
 
+	//parse objects
 	std::string line;
 	getline(infile, line);
 	if (line.compare("number of objects") != 0) {
@@ -87,9 +88,47 @@ __host__ SceneObject** parse() {
 		}
 	}
 
-	//SceneObject** sceneObjects;
+	//parse lights
+	getline(infile, line);
+	if (line.compare("number of lights") != 0) {
+		std::cerr << "file format problem - number of lights\n";
+		return nullptr;
+	}
+
+	int numLights;
+	infile >> numLights;
+	getline(infile, line);
+
+	for (int i = 0; i < numLights; i++) {
+		getline(infile, line);
+		if (line.compare("---") != 0) {
+			std::cerr << "file format at iteration " << i << "\n";
+			return nullptr;
+		}
+
+		//type of light
+		getline(infile, line);
+		SceneObject* nextObj = nullptr;
+
+		if (line.compare("directional") == 0) {
+			vec3 dir = parseVec(infile);
+			vec3 col = parseVec(infile);
+			getline(infile, line);
+		}
+		else if (line.compare("positional") == 0) {
+			vec3 pos = parseVec(infile);
+			vec3 dir = parseVec(infile);
+			vec3 col = parseVec(infile);
+			getline(infile, line);
+		}
+		else {
+			std::cerr << "light not recognized, iteration: " << i << "\n";
+			std::cerr << "line causing errror: " << line << "\n";
+		}
+	}
+
 	infile.close();
-	std::cout << "Scene parsed successfully\n";
+	std::cout << "Scene parsed successfully.\n";
 	return nullptr;
 }
 #endif

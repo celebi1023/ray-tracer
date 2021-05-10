@@ -6,8 +6,7 @@
 
 class material;
 
-class isect
-{
+class isect {
 public:
     float t;
     vec3 p;

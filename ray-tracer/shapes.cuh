@@ -19,16 +19,16 @@ public:
             float temp = (-b - sqrt(discriminant)) / a;
             if (temp < t_max && temp > t_min) {
                 i.t = temp;
-                i.p = r.point_at_parameter(i.t);
-                i.normal = (i.p - center) / radius;
+                i.p = r.at(i.t);
+                i.normal = unit_vector(i.p - center);
                 i.mat_ptr = mat_ptr;
                 return true;
             }
             temp = (-b + sqrt(discriminant)) / a;
             if (temp < t_max && temp > t_min) {
                 i.t = temp;
-                i.p = r.point_at_parameter(i.t);
-                i.normal = (i.p - center) / radius;
+                i.p = r.at(i.t);
+                i.normal = unit_vector(i.p - center);
                 i.mat_ptr = mat_ptr;
                 return true;
             }
@@ -51,7 +51,7 @@ public:
         minZ = 0;
         maxZ = 1200;
         y = 0;
-        material mat(vec3(0.8, 0.8, 0.8));
+        material mat(vec3(0.9, 0.4, 0.6), vec3(0.9, 0.4, 0.6));
         mat_ptr = &mat;
         normal = vec3(0.0, 1.0, 0.0);
     }
@@ -59,7 +59,7 @@ public:
     __device__ bool intersects(const ray& r, float t_min, float t_max, isect& i) const {
         if (dot(normal, r.direction()) >= 0) return false;
         float t = (dot(normal, vec3(0.0, y, 0.0)) - dot(normal, r.origin())) / dot(normal, r.direction());
-        vec3 p = r.point_at_parameter(t);
+        vec3 p = r.at(t);
         if (p.x() < minX || p.x() > maxX || p.z() < minZ || p.z() > maxZ) return false;
         i.t = t;
         i.p = p;

@@ -10,7 +10,7 @@ public:
     __device__ ray(const vec3& a, const vec3& b) { source = a; dir = b; }
     __device__ vec3 origin() const { return source; }
     __device__ vec3 direction() const { return dir; }
-    __device__ vec3 point_at_parameter(float t) const { return source + t * dir; }
+    __device__ vec3 at(float t) const { return source + t * dir; }
 
     vec3 source;
     vec3 dir;

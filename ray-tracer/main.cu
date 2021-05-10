@@ -7,6 +7,7 @@
 #include "scene.cuh"
 #include "material.cuh"
 #include "shapes.cuh"
+#include "parser.cuh"
 
 // limited version of checkCudaErrors from helper_cuda.h in CUDA examples
 #define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
@@ -39,7 +40,7 @@ __global__ void free_world(SceneObject** sceneObjects) {
     delete* sceneObjects;
 }
 
-__device__ vec3 color(const ray& r, SceneObject** sceneObjects) {
+__device__ vec3 color(const ray& r, SceneObject** sceneObjects, int numObjects) {
     ray cur_ray = r;
     vec3 background = vec3(0.1, 0.65, 1.0);
     vec3 cur_attenuation = vec3(0.0, 0.0, 0.0);
@@ -49,7 +50,7 @@ __device__ vec3 color(const ray& r, SceneObject** sceneObjects) {
         isect curIs;
         
         // go through all scene objects
-        for (int j = 0; j < 3; j++) {
+        for (int j = 0; j < numObjects; j++) {
             if (sceneObjects[j]->intersects(cur_ray, 0.001f, FLT_MAX, curIs)) {
                 if (!intersectFound || curIs.t < is.t) {
                     intersectFound = true;
@@ -66,7 +67,7 @@ __device__ vec3 color(const ray& r, SceneObject** sceneObjects) {
     return cur_attenuation;
 }
 
-__global__ void render(vec3* fb, int max_x, int max_y, SceneObject** sceneObjects) {
+__global__ void render(vec3* fb, int max_x, int max_y, SceneObject** sceneObjects, int numObjects) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if ((i >= max_x) || (j >= max_y)) return;
@@ -87,7 +88,7 @@ __global__ void render(vec3* fb, int max_x, int max_y, SceneObject** sceneObject
     vec3 dir = unit_vector(vec3(xx, -yy, 0.5));
     ray r(cameraPos, dir);
     
-    vec3 col = color(r, sceneObjects);
+    vec3 col = color(r, sceneObjects, numObjects);
     int pixel_index = j * max_x + i;
     fb[pixel_index] = col;
 }
@@ -102,16 +103,16 @@ int main() {
     std::cerr << "Rendering a " << nx << "x" << ny << " image ";
     std::cerr << "in " << tx << "x" << ty << " blocks.\n";
 
+    //parse
+    SceneObject** sceneObjects;
+    parse ();
+
     int num_pixels = nx * ny;
     size_t fb_size = 3 * num_pixels * sizeof(float);
 
     //screen
     //lower left is (0, 0, 0), screen plane is x and y axis
-
-    vec3 testVec = vec3(1.0, 1.0, 1.0) * vec3(1.0, 1.0, 1.0);
-    std::cout << testVec.x() << " " << testVec.y() << " " << testVec.z() << "\n";
     
-    SceneObject** sceneObjects;
     int numObjects = 3;
     checkCudaErrors(cudaMalloc((void**)&sceneObjects, numObjects * sizeof(SceneObject*)));
     create_world<<<1, 1>>>(sceneObjects);
@@ -126,7 +127,7 @@ int main() {
     dim3 blocks(nx / tx + 1, ny / ty + 1);
     dim3 threads(tx, ty);
     //render << <blocks, threads >> > (fb, nx, ny);
-    render << <blocks, threads >> > (fb, nx, ny, sceneObjects);
+    render << <blocks, threads >> > (fb, nx, ny, sceneObjects, numObjects);
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
     stop = clock();

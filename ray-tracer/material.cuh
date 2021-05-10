@@ -24,8 +24,19 @@ public:
         vec3 ambient(0.3, 0.3, 0.3);
         return diffuse + ambient * ka;
     }
-    vec3 ka;
-    vec3 kd;
+    vec3 ke;    //emissive
+    vec3 ka;    //ambient
+    vec3 ks;    //specular
+    vec3 kd;    //diffuse
+    vec3 kr;    //reflective
+    vec3 kt;    //transmissive
+
+    bool refl;  //specular reflector?
+    bool trans; //specular transmitter?
+    bool recur; //either one
+    bool spec;  //any kind of specular?
+    bool both;  //reflection and transmission
+
 };
 
 #endif

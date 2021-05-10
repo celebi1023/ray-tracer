@@ -107,7 +107,15 @@ public:
             if (t2 >= 0 && dot(va, p + v * t2) > 0 && dot(va, p + v * t2) < 0 && (t == -1 || t2 < t)) {
                 t = t2;
             }
-            //todo: get normals
+            //normals
+            if (t != -1) {
+                i.t = t;
+                vec3 point = v * t + p;
+                //va is p1 -> p2
+                vec3 proj = p1 + dot(vec3(point - p1), va) / dot(va, va) * va;
+                i.normal = point - proj;
+                i.mat_ptr = mat_ptr;
+            }
         }
         //todo: caps
         return t == -1;

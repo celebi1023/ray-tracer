@@ -8,6 +8,7 @@
 #include "material.cuh"
 #include "shapes.cuh"
 #include "parser.cuh"
+#include "trimesh.cuh"
 
 // limited version of checkCudaErrors from helper_cuda.h in CUDA examples
 #define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )

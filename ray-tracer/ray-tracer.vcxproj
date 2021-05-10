@@ -19,6 +19,7 @@
     <ClInclude Include="ray.cuh" />
     <ClInclude Include="scene.cuh" />
     <ClInclude Include="shapes.cuh" />
+    <ClInclude Include="trimesh.cuh" />
     <ClInclude Include="vec3.cuh" />
   </ItemGroup>
   <ItemGroup>

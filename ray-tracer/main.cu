@@ -74,19 +74,19 @@ __global__ void render(vec3* fb, int max_x, int max_y, SceneObject** sceneObject
     vec3 cameraPos(600, 400, -400);
     vec3 look = vec3(0, 0, 1);  // can change to whatever look direction
     vec3 u(1, 0, 0), v(0, 1, 0);
-    float x = (i + 0.5) / max_x - 0.5;  // normalized to [-0.5, 0.5]
-    float y = (j + 0.5) / max_y - 0.5;
-    ray r(cameraPos, unit_vector(look + (x * u) + (y * v)));
-    /*
+    //float x = (i + 0.5) / max_x - 0.5;  // normalized to [-0.5, 0.5]
+    //float y = (j + 0.5) / max_y - 0.5;
+    //ray r(cameraPos, unit_vector(look + (x * u) + (y * v)));
+    
     float fov = 30;
     float aspectratio = max_x / float(max_y);
     float M_PI = 3.141592653589793;
     float angle = tan(M_PI * 0.5 * fov / 180);
     float xx = (2 * ((i + 0.5) / float(max_x)) - 1) * angle * aspectratio;
     float yy = (1 - 2 * ((j + 0.5) / float(max_y))) * angle;
-    vec3 dir = unit_vector(vec3(xx, yy, 1));
+    vec3 dir = unit_vector(vec3(xx, -yy, 0.5));
     ray r(cameraPos, dir);
-    */
+    
     vec3 col = color(r, sceneObjects);
     int pixel_index = j * max_x + i;
     fb[pixel_index] = col;

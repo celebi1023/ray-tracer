@@ -45,7 +45,7 @@ private:
 class Floor : public SceneObject
 {
 public:
-    __device__ Floor() {
+    __device__ Floor(material* m) : mat_ptr(m){
         minX = 0;
         maxX = 1200;
         minZ = 0;
@@ -53,7 +53,7 @@ public:
         y = 0;
         //material mat(vec3(0.9, 0.4, 0.6), vec3(0.9, 0.4, 0.6));
         //mat_ptr = new material(vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
-        mat_ptr = new material(vec3(0.9, 0.4, 0.6), vec3(0.9, 0.4, 0.6), false);
+        //mat_ptr = new material(vec3(0.9, 0.4, 0.6), vec3(0.9, 0.4, 0.6), false);
         normal = vec3(0.0, 1.0, 0.0);
     }
 

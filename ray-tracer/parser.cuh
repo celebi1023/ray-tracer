@@ -10,8 +10,9 @@
 #include "scene.cuh"
 #include "check.cuh"
 
-__global__ void createFloor(SceneObject** objects, int i) {
-    objects[i] = new Floor();
+__global__ void createFloor(SceneObject** objects, int i, material m) {
+    material* mat = new material(m);
+    objects[i] = new Floor(mat);
 }
 
 __global__ void createSphere(SceneObject** objects, int i, vec3 c, float r, material m) {
@@ -48,15 +49,21 @@ __host__ material parseMat(std::ifstream& infile) {
     getline(infile, line);
     if (line.compare("material") != 0) {
         std::cerr << "file format with material:" << line << "\n";
-        return material(vec3(0, 0, 0), vec3(0, 0, 0), false);
+        return material();
     }
 
+    vec3 ke = parseVec(infile);
     vec3 ka = parseVec(infile);
+    vec3 ks = parseVec(infile);
     vec3 kd = parseVec(infile);
+    vec3 kr = parseVec(infile);
+    vec3 kt = parseVec(infile);
     int isRefl;
     infile >> isRefl;
+    float shininess;
+    infile >> shininess;
     getline(infile, line);
-    return material(ka, kd, isRefl == 1);
+    return material(ke, ka, ks, kd, kr, kt, isRefl == 1, shininess);
 }
 
 __host__ Scene* parse() {
@@ -92,10 +99,10 @@ __host__ Scene* parse() {
 
         getline(infile, line);  // type of object
         if (line.compare("floor") == 0) {
-            parseMat(infile);
             // TODO: add material (change floor constructor)
             // *********************************************
-            createFloor<<<1, 1>>>(objects, i);
+            material mat = parseMat(infile);
+            createFloor<<<1, 1>>>(objects, i, mat);
         } else if (line.compare("sphere") == 0) {
             vec3 center = parseVec(infile);
             float radius;

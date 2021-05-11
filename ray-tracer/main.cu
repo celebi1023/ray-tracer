@@ -15,11 +15,11 @@
 __global__ void create_world(SceneObject** sceneObjects) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
         //material mat1(vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0));
-        material* mat1 = new material(vec3(0.4, 0.6, 0.3), vec3(0.7, 1.0, 0.5), false);
+        //material* mat1 = new material(vec3(0.4, 0.6, 0.3), vec3(0.7, 1.0, 0.5), false);
         //material mat2(vec3(1.0, 0.35, 0.5), vec3(1.0, 0.35, 0.5));
-        *(sceneObjects) = new Floor();
-        *(sceneObjects + 1) = new Sphere(vec3(600, 400, 400), 200, mat1);
-        *(sceneObjects + 2) = new Box(vec3(1000, 10, 400), vec3(1300, 310, 700), mat1);
+        //*(sceneObjects) = new Floor();
+        //*(sceneObjects + 1) = new Sphere(vec3(600, 400, 400), 200, mat1);
+        //*(sceneObjects + 2) = new Box(vec3(1000, 10, 400), vec3(1300, 310, 700), mat1);
     }
 }
 

@@ -6,23 +6,21 @@
 
 class material {
 public:
-    __device__ material(const vec3& ka_, const vec3& kd_) : ka(ka_), kd(kd_) {}
-    __device__ vec3 shade(const ray& r, const isect& i) {
-        vec3 result(0.0, 0.0, 0.0);
-        //for now, light will be directional from up top (goes in -y direction)
-        vec3 light_in = vec3(1.0, 1.0, 1.0);
-        vec3 dir = vec3(0.0, 1.0, 0.0);
-        //todo
-        vec3 shad_atten = vec3(1.0, 1.0, 1.0);
-        vec3 dist_atten = vec3(1.0, 1.0, 1.0);
-        
-        // TODO: need to be able to access scene object to go through light sources
-        //       and calculate intersections of shadow rays
+    __host__ __device__ material(const vec3& ka_, const vec3& kd_) : ka(ka_), kd(kd_) {}
+    __device__ vec3 shade(Scene* scene, const ray& r, const isect& is) {
+        vec3 total(0.0, 0.0, 0.0);
+        for (int i = 0; i < scene->nlights; i++) {
+            Light* light = scene->lights[i];
+            vec3 light_in = light->distAtten(is.p) * light->shadowAtten(is.p);
+            vec3 dir = light->getDirection(is.p);
+            vec3 diffuse = kd * light_in * max(dot(dir, is.normal), 0.0);
+            total += diffuse;
+        }
 
-        //kd = vec3(1.0, 1.0, 1.0);
-        vec3 diffuse = kd * light_in * max(dot(dir, i.normal), 0.0);
+        // TODO: make ambient part of scene
+
         vec3 ambient(0.3, 0.3, 0.3);
-        return diffuse + ambient * ka;
+        return total + ambient * ka;
     }
     vec3 ke;    //emissive
     vec3 ka;    //ambient
@@ -36,7 +34,6 @@ public:
     bool recur; //either one
     bool spec;  //any kind of specular?
     bool both;  //reflection and transmission
-
 };
 
 #endif

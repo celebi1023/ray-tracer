@@ -140,4 +140,14 @@ __host__ __device__ inline vec3 unit_vector(vec3 v) {
     return v / v.length();
 }
 
+// returns distance between points p1 and p2
+__host__ __device__ inline float distance(vec3 p1, vec3 p2) {
+    return vec3(p1 - p2).length();
+}
+
+// returns unit direction vector from p1 to p2
+__host__ __device__ inline vec3 direction(vec3 p1, vec3 p2) {
+    return unit_vector(vec3(p2 - p1));
+}
+
 #endif

@@ -38,14 +38,14 @@ __device__ vec3 color(const ray& r, Scene* scene) {
     vec3 kr_factor = vec3(1.0, 1.0, 1.0);
     for (int i = 0; i < 2; i++) {
         isect is;    
-        if (scene->intersects(cur_ray, 0.001f, FLT_MAX, is)) {
+        if (scene->intersects(cur_ray, RAY_EPSILON, FLT_MAX, is)) {
             total += kr_factor * is.mat_ptr->shade(scene, r, is);
             if (!is.mat_ptr->refl) {
                 break;
             }
             kr_factor *= is.mat_ptr->kr;
             vec3 reflect_dir = cur_ray.direction() - 2 * dot(cur_ray.direction(), is.normal) * is.normal;
-            cur_ray = ray(is.p, unit_vector(reflect_dir));
+            cur_ray = ray(cur_ray.at(is.t - RAY_EPSILON), unit_vector(reflect_dir));
         } else {
             // TODO: get background from scene method
             total += kr_factor * background;

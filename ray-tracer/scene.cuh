@@ -33,7 +33,7 @@ public:
         isect i_curr;
         bool intersectFound = false;
         for (int j = 0; j < nobjects; j++) {
-            if (objects[j]->intersects(r, 0.001f, FLT_MAX, i_curr)) {
+            if (objects[j]->intersects(r, t_min, t_max, i_curr)) {
                 if (!intersectFound || i_curr.t < is.t) {
                     intersectFound = true;
                     is = i_curr;

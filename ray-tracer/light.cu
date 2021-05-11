@@ -18,10 +18,11 @@ __device__ float Light::distAtten(const vec3& P) {
     }
 }
 
+// assumes passed P is backed up slightly from intersection point
 __device__ vec3 Light::shadowAtten(const vec3& P) {
     isect is;
     ray shadow_ray(P, getDirection(P));
-    if (scene->intersects(shadow_ray, RAY_EPSILON, FLT_MAX, is)) {
+    if (scene->intersects(shadow_ray, 0, FLT_MAX, is)) {
         return vec3(0.0, 0.0, 0.0);
     } else {
         return color;

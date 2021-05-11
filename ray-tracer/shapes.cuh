@@ -58,8 +58,10 @@ public:
     }
 
     __device__ bool intersects(const ray& r, float t_min, float t_max, isect& i) const {
-        if (dot(normal, r.direction()) >= 0) return false;
+        if (dot(normal, r.direction()) == 0) return false;
         float t = (dot(normal, vec3(0.0, y, 0.0)) - dot(normal, r.origin())) / dot(normal, r.direction());
+        if (t < t_min) return false;
+
         vec3 p = r.at(t);
         if (p.x() < minX || p.x() > maxX || p.z() < minZ || p.z() > maxZ) return false;
         i.t = t;

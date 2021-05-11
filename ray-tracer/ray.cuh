@@ -3,7 +3,7 @@
 
 #include "vec3.cuh"
 
-#define RAY_EPSILON 0.001f
+#define RAY_EPSILON 0.01f
 
 class ray
 {

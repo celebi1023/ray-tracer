@@ -150,4 +150,16 @@ __host__ __device__ inline vec3 direction(vec3 p1, vec3 p2) {
     return unit_vector(vec3(p2 - p1));
 }
 
+// keep color in [0, 1] range
+__host__ __device__ inline vec3 clamp(vec3 col) {
+    for (int i = 0; i < 3; i++) {
+        if (col[i] < 0) {
+            col[i] = 0;
+        } else if (col[i] > 1) {
+            col[i] = 1;
+        }
+    }
+    return col;
+}
+
 #endif

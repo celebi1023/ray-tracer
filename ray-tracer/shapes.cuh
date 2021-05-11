@@ -141,7 +141,7 @@ public:
         vec3 p = r.origin();
         //face zmin
         curT = (min.z() - p.z()) / v.z();
-        if (curT >= 0) {
+        if (curT >= t_min) {
             //point of intersection
             vec3 point = v * curT + p;
             if (min.x() <= point.x() && point.x() <= max.x() && min.y() <= point.y() && point.y() <= max.y()) {
@@ -154,7 +154,7 @@ public:
         }
         //face zmax
         curT = (max.z() - p.z()) / v.z();
-        if (curT >= 0) {
+        if (curT >= t_min) {
             vec3 point = v * curT + p;
             if (min.x() <= point.x() && point.x() <= max.x() && min.y() <= point.y() && point.y() <= max.y()) {
                 if (t == -1 || curT < t) {
@@ -165,7 +165,7 @@ public:
         }
         //face ymin
         curT = (min.y() - p.y()) / v.y();
-        if (curT >= 0) {
+        if (curT >= t_min) {
             vec3 point = v * curT + p;
             if (min.x() <= point.x() && point.x() <= max.x() && min.z() <= point.z() && point.z() <= max.z()) {
                 if (t == -1 || curT < t) {
@@ -176,7 +176,7 @@ public:
         }
         //face ymax
         curT = (max.y() - p.y()) / v.y();
-        if (curT >= 0) {
+        if (curT >= t_min) {
             vec3 point = v * curT + p;
             if (min.x() <= point.x() && point.x() <= max.x() && min.z() <= point.z() && point.z() <= max.z()) {
                 if (t == -1 || curT < t) {
@@ -187,7 +187,7 @@ public:
         }
         //face xmin
         curT = (min.x() - p.x()) / v.x();
-        if (curT >= 0) {
+        if (curT >= t_min) {
             vec3 point = v * curT + p;
             if (min.y() <= point.y() && point.y() <= max.y() && min.z() <= point.z() && point.z() <= max.z()) {
                 if (t == -1 || curT < t) {
@@ -198,7 +198,7 @@ public:
         }
         //face xmax
         curT = (max.x() - p.x()) / v.x();
-        if (curT >= 0) {
+        if (curT >= t_min) {
             vec3 point = v * curT + p;
             if (min.y() <= point.y() && point.y() <= max.y() && min.z() <= point.z() && point.z() <= max.z()) {
                 if (t == -1 || curT < t) {
@@ -207,8 +207,7 @@ public:
                 }
             }
         }
-        if (t == -1)
-            return false;
+        if (t == -1 || t >= t_max) return false;
         i.t = t;
         i.p = v * t + p;
         i.mat_ptr = mat_ptr;

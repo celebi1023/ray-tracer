@@ -20,7 +20,7 @@ public:
         // TODO: make ambient part of scene
 
         vec3 ambient(0.3, 0.3, 0.3);
-        return total + ambient * ka;
+        return clamp(total + ambient * ka);
     }
     vec3 ke;    //emissive
     vec3 ka;    //ambient

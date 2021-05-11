@@ -115,18 +115,49 @@ __host__ Scene* parse() {
         }
     }
 
-    // TODO: actually parse lights
+    // parse lights 
+    getline(infile, line);
+    if (line.compare("number of lights") != 0) {
+        std::cerr << "file format problem - number of lights\n";
+        return nullptr;
+    }
+
+    int numLights;
+    infile >> numLights;
+    getline(infile, line);
+
     Light** lights;
-    int numLights = 1;
     cudaMalloc((void**) &lights, numLights * sizeof(Light*));
 
     Scene* scene;
     cudaMalloc((void**) &scene, sizeof(Scene));
     createScene<<<1, 1>>>(scene, objects, lights, numObjects, numLights);
-    
-    // create single directional light for scene
-    createLight<<<1, 1>>>(scene, lights, 0, true, vec3(0, -1, 0), vec3(1, 1, 1));
-    
+
+    for (int i = 0; i < numLights; i++) {
+        getline(infile, line);
+        if (line.compare("---") != 0) {
+            std::cerr << "file format at iteration " << i << "\n";
+            return nullptr;
+        }
+
+        //type of light
+        getline(infile, line);
+        if (line.compare("directional") == 0) {
+            vec3 dir = parseVec(infile);
+            vec3 col = parseVec(infile);
+            getline(infile, line);
+            createLight<<<1, 1>>>(scene, lights, i, true, dir, col);
+        } else if (line.compare("positional") == 0) {
+            vec3 pos = parseVec(infile);
+            vec3 col = parseVec(infile);
+            getline(infile, line);
+            createLight<<<1, 1>>>(scene, lights, i, false, pos, col);
+        } else {
+            std::cerr << "light not recognized, iteration: " << i << "\n";
+            std::cerr << "line causing errror: " << line << "\n";
+        }
+    }
+
     infile.close();
     std::cout << "Scene parsed successfully\n";
     checkCudaErrors(cudaDeviceSynchronize());  // wait for GPU kernels to complete

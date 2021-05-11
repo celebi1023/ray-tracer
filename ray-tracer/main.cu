@@ -15,7 +15,7 @@
 __global__ void create_world(SceneObject** sceneObjects) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
         //material mat1(vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0));
-        material* mat1 = new material(vec3(0.4, 0.6, 0.3), vec3(0.7, 1.0, 0.5));
+        material* mat1 = new material(vec3(0.4, 0.6, 0.3), vec3(0.7, 1.0, 0.5), false);
         //material mat2(vec3(1.0, 0.35, 0.5), vec3(1.0, 0.35, 0.5));
         *(sceneObjects) = new Floor();
         *(sceneObjects + 1) = new Sphere(vec3(600, 400, 400), 200, mat1);
@@ -33,26 +33,26 @@ __global__ void free_world(SceneObject** sceneObjects) {
 __device__ vec3 color(const ray& r, Scene* scene) {
     ray cur_ray = r;
     vec3 background = vec3(0.1, 0.65, 1.0);
-    vec3 cur_attenuation = vec3(0.0, 0.0, 0.0);
+    vec3 total = vec3(0.0, 0.0, 0.0);
     //TODO - add kr into material, it is hardcoded into the constructor rn
     vec3 kr_factor = vec3(1.0, 1.0, 1.0);
     for (int i = 0; i < 2; i++) {
         isect is;    
         if (scene->intersects(cur_ray, 0.001f, FLT_MAX, is)) {
-            cur_attenuation += kr_factor * is.mat_ptr->shade(scene, r, is);
+            total += kr_factor * is.mat_ptr->shade(scene, r, is);
             if (!is.mat_ptr->refl) {
                 break;
             }
             kr_factor *= is.mat_ptr->kr;
             vec3 reflect_dir = cur_ray.direction() - 2 * dot(cur_ray.direction(), is.normal) * is.normal;
-            cur_ray = ray(cur_ray.at(is.t), unit_vector(reflect_dir));
+            cur_ray = ray(is.p, unit_vector(reflect_dir));
         } else {
             // TODO: get background from scene method
-            cur_attenuation += kr_factor * background;
+            total += kr_factor * background;
             break;
         }
     }
-    return cur_attenuation;
+    return clamp(total);
 }
 
 __global__ void render(vec3* fb, int max_x, int max_y, Scene* scene) {
@@ -110,7 +110,7 @@ int main() {
     clock_t start, stop;
     start = clock();
     // Render our buffer
-    dim3 blocks(nx / tx + 1, ny / ty + 1);
+    dim3 blocks((nx + tx - 1) / tx, (ny + ty - 1) / ty);
     dim3 threads(tx, ty);
     //render << <blocks, threads >> > (fb, nx, ny);
     render<<<blocks, threads>>>(fb, nx, ny, scene);

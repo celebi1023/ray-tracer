@@ -53,7 +53,7 @@ public:
         y = 0;
         //material mat(vec3(0.9, 0.4, 0.6), vec3(0.9, 0.4, 0.6));
         //mat_ptr = new material(vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
-        mat_ptr = new material(vec3(0.9, 0.4, 0.6), vec3(0.9, 0.4, 0.6));
+        mat_ptr = new material(vec3(0.9, 0.4, 0.6), vec3(0.9, 0.4, 0.6), false);
         normal = vec3(0.0, 1.0, 0.0);
     }
 

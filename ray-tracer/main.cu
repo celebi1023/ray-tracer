@@ -10,6 +10,7 @@
 #include "material.cuh"
 #include "shapes.cuh"
 #include "parser.cuh"
+#include "trimesh.cuh"
 
 __global__ void create_world(SceneObject** sceneObjects) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {

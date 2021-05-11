@@ -5,6 +5,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="parser.cuh" />
+    <ClInclude Include="trimesh.cuh" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Scenes\test1.txt" />

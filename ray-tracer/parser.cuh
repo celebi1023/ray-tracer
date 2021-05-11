@@ -48,15 +48,15 @@ __host__ material parseMat(std::ifstream& infile) {
     getline(infile, line);
     if (line.compare("material") != 0) {
         std::cerr << "file format with material:" << line << "\n";
-        return material(vec3(0, 0, 0), vec3(0, 0, 0));
+        return material(vec3(0, 0, 0), vec3(0, 0, 0), false);
     }
 
     vec3 ka = parseVec(infile);
     vec3 kd = parseVec(infile);
-    //todo: problem as material constructor is a device function
-    //return new material(ka, kd);
+    int isRefl;
+    infile >> isRefl;
     getline(infile, line);
-    return material(ka, kd);
+    return material(ka, kd, isRefl == 1);
 }
 
 __host__ Scene* parse() {

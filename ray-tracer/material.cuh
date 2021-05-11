@@ -6,7 +6,7 @@
 
 class material {
 public:
-    __host__ __device__ material(const vec3& ka_, const vec3& kd_) : ka(ka_), kd(kd_) {}
+    __host__ __device__ material(const vec3& ka_, const vec3& kd_, bool refl_) : ka(ka_), kd(kd_), refl(refl_) { kr = vec3(0.4, 0.4, 0.4); }
     __device__ vec3 shade(Scene* scene, const ray& r, const isect& is) {
         vec3 total(0.0, 0.0, 0.0);
         for (int i = 0; i < scene->nlights; i++) {

@@ -34,13 +34,22 @@ __device__ vec3 color(const ray& r, Scene* scene) {
     ray cur_ray = r;
     vec3 background = vec3(0.1, 0.65, 1.0);
     vec3 cur_attenuation = vec3(0.0, 0.0, 0.0);
-    for (int i = 0; i < 1; i++) {
+    //TODO - add kr into material, it is hardcoded into the constructor rn
+    vec3 kr_factor = vec3(1.0, 1.0, 1.0);
+    for (int i = 0; i < 2; i++) {
         isect is;    
         if (scene->intersects(cur_ray, 0.001f, FLT_MAX, is)) {
-            cur_attenuation += is.mat_ptr->shade(scene, r, is);
+            cur_attenuation += kr_factor * is.mat_ptr->shade(scene, r, is);
+            if (!is.mat_ptr->refl) {
+                break;
+            }
+            kr_factor *= is.mat_ptr->kr;
+            vec3 reflect_dir = cur_ray.direction() - 2 * dot(cur_ray.direction(), is.normal) * is.normal;
+            cur_ray = ray(cur_ray.at(is.t), unit_vector(reflect_dir));
         } else {
             // TODO: get background from scene method
-            cur_attenuation += background;
+            cur_attenuation += kr_factor * background;
+            break;
         }
     }
     return cur_attenuation;

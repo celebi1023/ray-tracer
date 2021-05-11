@@ -5,6 +5,7 @@ floor
 material
 0.9 0.4 0.6
 0.9 0.4 0.6
+0
 ---
 sphere
 600 400 400
@@ -12,6 +13,7 @@ sphere
 material
 0.4 0.6 0.3
 0.7 1.0 0.5
+1
 ---
 box
 1000 10 400
@@ -19,6 +21,7 @@ box
 material
 0.4 0.6 0.3
 0.7 1.0 0.5
+0
 number of lights
 2
 ---

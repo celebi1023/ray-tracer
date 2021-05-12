@@ -35,20 +35,49 @@ __device__ vec3 color(const ray& r, Scene* scene) {
     vec3 background = vec3(0.1, 0.65, 1.0);
     vec3 total = vec3(0.0, 0.0, 0.0);
     //TODO - add kr into material, it is hardcoded into the constructor rn
-    vec3 kr_factor = vec3(1.0, 1.0, 1.0);
+    vec3 k_factor = vec3(1.0, 1.0, 1.0);
     for (int i = 0; i < 2; i++) {
         isect is;    
         if (scene->intersects(cur_ray, RAY_EPSILON, FLT_MAX, is)) {
-            total += kr_factor * is.mat_ptr->shade(scene, r, is);
-            if (!is.mat_ptr->refl) {
+            total += k_factor * is.mat_ptr->shade(scene, r, is);
+            if (is.mat_ptr->trans) {
+                bool inside = dot(cur_ray.direction(), is.normal) > 0;
+                float n_i = inside ? is.mat_ptr->index : 1.0001;
+                float n_t = inside ? 1.0001 : is.mat_ptr->index;
+                vec3 normal = inside ? -is.normal : is.normal;
+                float n_ratio = n_i / n_t;
+                float cos_i = dot(-cur_ray.direction(), normal);
+                float cos2_t = 1 - n_ratio * n_ratio * (1 - cos_i * cos_i);
+
+                vec3 refract_dir;
+                if (cos2_t < 0) {
+                    //total internal refraction
+                    refract_dir = cur_ray.direction() - 2 * dot(cur_ray.direction(), normal) * normal;
+                }
+                else {
+                    float cos_t = sqrt(cos2_t);
+                    refract_dir = (n_ratio * cos_i - cos_t) * normal - n_ratio * -cur_ray.direction();
+                }
+
+                if (inside) {
+                    vec3 kt = is.mat_ptr->kt;
+                    kt = vec3(pow(kt.x, is.t), pow(kt.y, is.t), pow(kt.z, is.t));
+                    k_factor *= kt;
+                }
+
+                cur_ray = ray(cur_ray.at(is.t - RAY_EPSILON), unit_vector(refract_dir));
+            }
+            else if (is.mat_ptr->refl) {
+                k_factor *= is.mat_ptr->kr;
+                vec3 reflect_dir = cur_ray.direction() - 2 * dot(cur_ray.direction(), is.normal) * is.normal;
+                cur_ray = ray(cur_ray.at(is.t - RAY_EPSILON), unit_vector(reflect_dir));
+            }
+            else {
                 break;
             }
-            kr_factor *= is.mat_ptr->kr;
-            vec3 reflect_dir = cur_ray.direction() - 2 * dot(cur_ray.direction(), is.normal) * is.normal;
-            cur_ray = ray(cur_ray.at(is.t - RAY_EPSILON), unit_vector(reflect_dir));
         } else {
             // TODO: get background from scene method
-            total += kr_factor * background;
+            total += k_factor * background;
             break;
         }
     }

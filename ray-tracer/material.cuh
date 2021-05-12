@@ -9,8 +9,8 @@ class material {
 public:
     __host__ __device__ material() {}
     __host__ __device__ material(const vec3& e, const vec3& a, const vec3& s, const vec3& d, 
-                                 const vec3& r, const vec3& t, bool refl_, float sh) 
-        : ke(e), ka(a), ks(s), kd(d), kr(r), kt(t), refl(refl_), shininess(sh) {
+                                 const vec3& r, const vec3& t, bool refl_, bool trans_, float sh, float id) 
+        : ke(e), ka(a), ks(s), kd(d), kr(r), kt(t), refl(refl_), trans(trans_), shininess(sh), index(id) {
         if (refl_) {
             kr = vec3(0.4, 0.4, 0.4);
         } else {
@@ -53,6 +53,7 @@ public:
     bool both;  //reflection and transmission
 
     float shininess;
+    float index;
 };
 
 #endif

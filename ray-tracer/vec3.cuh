@@ -162,4 +162,8 @@ __host__ __device__ inline vec3 clamp(vec3 col) {
     return col;
 }
 
+__host__ __device__ inline vec3 pow(vec3 v, float d) {
+    return vec3(pow(v[0], d), pow(v[1], d), pow(v[2], d));
+}
+
 #endif

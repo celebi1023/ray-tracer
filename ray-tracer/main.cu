@@ -12,73 +12,81 @@
 #include "parser.cuh"
 #include "trimesh.cuh"
 
-__global__ void create_world(SceneObject** sceneObjects) {
-    if (threadIdx.x == 0 && blockIdx.x == 0) {
-        //material mat1(vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0));
-        //material* mat1 = new material(vec3(0.4, 0.6, 0.3), vec3(0.7, 1.0, 0.5), false);
-        //material mat2(vec3(1.0, 0.35, 0.5), vec3(1.0, 0.35, 0.5));
-        //*(sceneObjects) = new Floor();
-        //*(sceneObjects + 1) = new Sphere(vec3(600, 400, 400), 200, mat1);
-        //*(sceneObjects + 2) = new Box(vec3(1000, 10, 400), vec3(1300, 310, 700), mat1);
-    }
-}
 
-__global__ void free_world(SceneObject** sceneObjects) {
-    for (int i = 0; i < 1; i++) {
-        //delete ((sphere*)d_list[i])->mat_ptr;
-    }
-    delete* sceneObjects;
-}
-
-__device__ vec3 color(const ray& r, Scene* scene) {
+__device__ vec3 color(const ray& r, Scene* scene, bool debug = false) {
     ray cur_ray = r;
-    vec3 background = vec3(0.1, 0.65, 1.0);
     vec3 total = vec3(0.0, 0.0, 0.0);
-    //TODO - add kr into material, it is hardcoded into the constructor rn
+    // TODO - add bias to reflect and refract
     vec3 k_factor = vec3(1.0, 1.0, 1.0);
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 10; i++) {
         isect is;    
         if (scene->intersects(cur_ray, RAY_EPSILON, FLT_MAX, is)) {
-            total += k_factor * is.mat_ptr->shade(scene, r, is);
+            if (debug) {
+                printf("intersection at %f %f %f\n", is.p[0], is.p[1], is.p[2]);
+            }
+
             if (is.mat_ptr->trans) {
+                if (debug) {
+                    printf("material is transmissive\n");
+                }
                 bool inside = dot(cur_ray.direction(), is.normal) > 0;
                 float n_i = inside ? is.mat_ptr->index : 1.0001;
                 float n_t = inside ? 1.0001 : is.mat_ptr->index;
-                vec3 normal = inside ? -is.normal : is.normal;
+                vec3 normal = !inside ? -is.normal : is.normal;
+                float cosi = dot(cur_ray.direction(), normal);
                 float n_ratio = n_i / n_t;
-                float cos_i = dot(-cur_ray.direction(), normal);
-                float cos2_t = 1 - n_ratio * n_ratio * (1 - cos_i * cos_i);
-
+                float k = 1 - n_ratio * n_ratio * (1 - cosi * cosi);
                 vec3 refract_dir;
-                if (cos2_t < 0) {
-                    //total internal refraction
-                    refract_dir = cur_ray.direction() - 2 * dot(cur_ray.direction(), normal) * normal;
-                }
-                else {
-                    float cos_t = sqrt(cos2_t);
-                    refract_dir = (n_ratio * cos_i - cos_t) * normal - n_ratio * -cur_ray.direction();
+                if (k < 0) {
+                    if (debug) {
+                        printf("total internal reflection\n");
+                    }
+                    // total internal reflection
+                    refract_dir = cur_ray.direction() - 2 * dot(cur_ray.direction(), -normal) * -normal;
+                } else {
+                    refract_dir = n_ratio * cur_ray.direction() + (n_ratio * cosi - sqrt(k)) * normal;
                 }
 
                 if (inside) {
-                    vec3 kt = is.mat_ptr->kt;
-                    kt = vec3(pow(kt.x, is.t), pow(kt.y, is.t), pow(kt.z, is.t));
-                    k_factor *= kt;
+                    k_factor *= pow(is.mat_ptr->kt, is.t / 100);  // divide by 100 since objects are large
                 }
-
-                cur_ray = ray(cur_ray.at(is.t - RAY_EPSILON), unit_vector(refract_dir));
-            }
-            else if (is.mat_ptr->refl) {
-                k_factor *= is.mat_ptr->kr;
+                vec3 shading = is.mat_ptr->shade(scene, cur_ray, is, inside);
+                total += k_factor * shading;
+                cur_ray = ray(cur_ray.at(is.t), unit_vector(refract_dir));
+                if (debug) {
+                    printf("refraction direction: %f %f %f\n", refract_dir[0], refract_dir[1], refract_dir[2]);
+                    printf("shading: %f %f %f, k_factor: %f %f %f\n", shading[0], shading[1], shading[2], k_factor[0], k_factor[1], k_factor[2]);
+                }
+            } else if (is.mat_ptr->refl) {
                 vec3 reflect_dir = cur_ray.direction() - 2 * dot(cur_ray.direction(), is.normal) * is.normal;
-                cur_ray = ray(cur_ray.at(is.t - RAY_EPSILON), unit_vector(reflect_dir));
-            }
-            else {
+                cur_ray = ray(cur_ray.at(is.t), unit_vector(reflect_dir));
+                vec3 shading = is.mat_ptr->shade(scene, cur_ray, is);
+                total += k_factor * shading;
+                k_factor *= is.mat_ptr->kr;
+                if (debug) {
+                    printf("material is reflective\n");
+                    printf("reflection direction: %f %f %f\n", reflect_dir[0], reflect_dir[1], reflect_dir[2]);
+                    printf("shading: %f %f %f, k_factor: %f %f %f\n", shading[0], shading[1], shading[2], k_factor[0], k_factor[1], k_factor[2]);
+                }
+            } else {
+                vec3 shading = is.mat_ptr->shade(scene, cur_ray, is);
+                total += k_factor * shading;
+                if (debug) {
+                    printf("material is neither\n");
+                    printf("shading: %f %f %f\n", shading[0], shading[1], shading[2]);
+                }
                 break;
             }
         } else {
-            // TODO: get background from scene method
-            total += kr_factor * scene->background(cur_ray);
+            if (debug) {
+                printf("ray hit background\n");
+            }
+            total += k_factor * scene->background(cur_ray);
             break;
+        }
+
+        if (debug) {
+            printf("total shading %d: %f %f %f\n", i, total[0], total[1], total[2]);
         }
     }
     return clamp(total);
@@ -110,6 +118,22 @@ __global__ void render(vec3* fb, int max_x, int max_y, Scene* scene) {
     fb[pixel_index] = col;
 }
 
+__global__ void debugRay(int x, int y, int max_x, int max_y, Scene* scene) {
+    vec3 cameraPos(600, 400, -400);
+    vec3 look = vec3(0, 0, 1);
+    vec3 u(1, 0, 0), v(0, 1, 0);
+    
+    float fov = 30;
+    float aspectratio = max_x / float(max_y);
+    float angle = tan(M_PI * 0.5 * fov / 180);
+    float xx = (2 * ((x + 0.5) / float(max_x)) - 1) * angle * aspectratio;
+    float yy = (1 - 2 * ((y + 0.5) / float(max_y))) * angle;
+    vec3 dir = unit_vector(vec3(xx, -yy, 0.5));
+    ray r(cameraPos, dir);
+    
+    vec3 col = color(r, scene, true);
+}
+
 int main() {
     int nx = 1200;
     int ny = 600;
@@ -124,13 +148,6 @@ int main() {
 
     int num_pixels = nx * ny;
     size_t fb_size = 3 * num_pixels * sizeof(float);
-
-    //screen
-    //lower left is (0, 0, 0), screen plane is x and y axis
-    
-    // int numObjects = 3;
-    // checkCudaErrors(cudaMalloc((void**)&sceneObjects, numObjects * sizeof(SceneObject*)));
-    // create_world<<<1, 1>>>(sceneObjects);
 
     // allocate FB
     vec3* fb;
@@ -164,8 +181,15 @@ int main() {
             outfile << ir << " " << ig << " " << ib << "\n";
         }
     }
-    
+
+    int x, y;
+    std::cin >> x >> y;
+    while (x >= 0 && y >= 0) {
+        debugRay<<<1, 1>>>(x, y, nx, ny, scene);
+        checkCudaErrors(cudaDeviceSynchronize());
+        std::cin >> x >> y;
+    }
+
     checkCudaErrors(cudaFree(fb));
-    // free_world << <1, 1 >> > (sceneObjects);
 }
 

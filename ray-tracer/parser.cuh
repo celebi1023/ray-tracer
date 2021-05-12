@@ -28,7 +28,7 @@ __global__ void createBox(SceneObject** objects, int i, vec3 p1, vec3 p2, materi
 // TODO: add constant, linear, and quadratic term coefficients as params
 __global__ void createLight(Scene* scene, Light** lights, int i, bool is_dir, vec3 light, vec3 color) {
     // constant = 0, linear = 0.1, quadratic = 0.1
-    lights[i] = new Light(scene, is_dir, light, color, 0, 0.1, 0.1);
+    lights[i] = new Light(scene, is_dir, light, color, 0, 0.5, 0.1);
 }
 
 __global__ void createScene(Scene* scene, SceneObject** objects, Light** lights, int nobjects, int nlights) {

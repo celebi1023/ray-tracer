@@ -23,6 +23,7 @@
     <ClInclude Include="vec3.cuh" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="scene1.txt" />
     <Text Include="Scenes\test1.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

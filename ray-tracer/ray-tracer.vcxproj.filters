@@ -6,8 +6,14 @@
   <ItemGroup>
     <ClInclude Include="parser.cuh" />
     <ClInclude Include="trimesh.cuh" />
+    <ClInclude Include="material.cuh" />
+    <ClInclude Include="ray.cuh" />
+    <ClInclude Include="scene.cuh" />
+    <ClInclude Include="shapes.cuh" />
+    <ClInclude Include="vec3.cuh" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Scenes\test1.txt" />
+    <Text Include="scene1.txt" />
   </ItemGroup>
 </Project>

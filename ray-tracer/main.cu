@@ -48,7 +48,7 @@ __device__ vec3 color(const ray& r, Scene* scene) {
             cur_ray = ray(cur_ray.at(is.t - RAY_EPSILON), unit_vector(reflect_dir));
         } else {
             // TODO: get background from scene method
-            total += kr_factor * background;
+            total += kr_factor * scene->background(cur_ray);
             break;
         }
     }

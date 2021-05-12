@@ -44,9 +44,52 @@ public:
     }
 
     __device__ vec3 background(const ray& r) {
-        // TODO: linearly blend blue/white for sky or use cubemap
-        
-        return vec3(0.1, 0.65, 1.0);
+        vec3 dir = r.direction();
+        float x = dir[0], y = dir[1], z = dir[2];
+        float absX = fabs(x);
+        float absY = fabs(y);
+        float absZ = fabs(z);
+
+        // int idx;
+        float maxAxis, /*, uc */ vc;
+        if (x > 0 && absX >= absY && absX >= absZ) {
+            maxAxis = absX;
+            // uc = -z;
+            vc = y;
+            // idx = 0;
+        } else if (x < 0 && absX >= absY && absX >= absZ) {
+            maxAxis = absX;
+            // uc = z;
+            vc = y;
+            // idx = 1;
+        } else if (y > 0 && absY >= absX && absY >= absZ) {
+            maxAxis = absY;
+            // uc = x;
+            vc = -z;
+            // idx = 2;
+        } else if (y < 0 && absY >= absX && absY >= absZ) {
+            maxAxis = absY;
+            // uc = x;
+            vc = z;
+            // idx = 3;
+        } else if (z > 0 && absZ >= absX && absZ >= absY) {
+            maxAxis = absZ;
+            // uc = x;
+            vc = y;
+            // idx = 4;
+        } else {
+            maxAxis = absZ;
+            // uc = -x;
+            vc = y;
+            // idx = 5;
+        }
+
+        // float u = 0.5 * (uc / maxAxis + 1.0);
+        float v = 0.5 * (vc / maxAxis + 1.0);
+
+        // TODO: linearly interpolate texture map at idx for cube map
+
+        return v * vec3(0.5, 0.7, 1.0) + (1 - v) * vec3(1, 1, 1);
     }
 
     int nobjects;

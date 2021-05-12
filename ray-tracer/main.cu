@@ -18,7 +18,7 @@ __device__ vec3 color(const ray& r, Scene* scene, bool debug = false) {
     vec3 total = vec3(0.0, 0.0, 0.0);
     // TODO - add bias to reflect and refract
     vec3 k_factor = vec3(1.0, 1.0, 1.0);
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 50; i++) {
         isect is;    
         if (scene->intersects(cur_ray, RAY_EPSILON, FLT_MAX, is)) {
             if (debug) {
@@ -92,7 +92,7 @@ __device__ vec3 color(const ray& r, Scene* scene, bool debug = false) {
     return clamp(total);
 }
 
-__global__ void render(vec3* fb, int max_x, int max_y, Scene* scene) {
+__global__ void render(vec3* fb, int max_x, int max_y, Scene* scene, int aa = 1) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if ((i >= max_x) || (j >= max_y)) return;
@@ -104,18 +104,26 @@ __global__ void render(vec3* fb, int max_x, int max_y, Scene* scene) {
     //float y = (j + 0.5) / max_y - 0.5;
     //ray r(cameraPos, unit_vector(look + (x * u) + (y * v)));
     
-    float fov = 30;
-    float aspectratio = max_x / float(max_y);
-    // float M_PI = 3.141592653589793;
-    float angle = tan(M_PI * 0.5 * fov / 180);
-    float xx = (2 * ((i + 0.5) / float(max_x)) - 1) * angle * aspectratio;
-    float yy = (1 - 2 * ((j + 0.5) / float(max_y))) * angle;
-    vec3 dir = unit_vector(vec3(xx, -yy, 0.5));
-    ray r(cameraPos, dir);
+    int aamax_x = max_x * aa;
+    int aamax_y = max_y * aa;
+
+    vec3 pixel = vec3(0, 0, 0);
+    for (int row = 0; row < aa; row++) {
+        for (int col = 0; col < aa; col++) {
+            float fov = 30;
+            float aspectratio = aamax_x / float(aamax_y);
+            float angle = tan(M_PI * 0.5 * fov / 180);
+            float xx = (2 * ((i * aa + row + 0.5) / float(aamax_x)) - 1) * angle * aspectratio;
+            float yy = (1 - 2 * ((j * aa + col + 0.5) / float(aamax_y))) * angle;
+            vec3 dir = unit_vector(vec3(xx, -yy, 0.5));
+            ray r(cameraPos, dir);
+            pixel += color(r, scene);
+        }
+    }
     
-    vec3 col = color(r, scene);
+    pixel /= aa * aa;
     int pixel_index = j * max_x + i;
-    fb[pixel_index] = col;
+    fb[pixel_index] = pixel;
 }
 
 __global__ void debugRay(int x, int y, int max_x, int max_y, Scene* scene) {
@@ -159,7 +167,7 @@ int main() {
     dim3 blocks((nx + tx - 1) / tx, (ny + ty - 1) / ty);
     dim3 threads(tx, ty);
     //render << <blocks, threads >> > (fb, nx, ny);
-    render<<<blocks, threads>>>(fb, nx, ny, scene);
+    render<<<blocks, threads>>>(fb, nx, ny, scene, 3);
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
     stop = clock();

@@ -60,10 +60,14 @@ __host__ material parseMat(std::ifstream& infile) {
     vec3 kt = parseVec(infile);
     int isRefl;
     infile >> isRefl;
+    int isTrans;
+    infile >> isTrans;
     float shininess;
     infile >> shininess;
+    float index;
+    infile >> index;
     getline(infile, line);
-    return material(ke, ka, ks, kd, kr, kt, isRefl == 1, shininess);
+    return material(ke, ka, ks, kd, kr, kt, isRefl == 1, isTrans == 1, shininess, index);
 }
 
 __host__ Scene* parse() {

@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cfloat>
 #include <ctime>
+#include <string>
 
 #include "check.cuh"
 #include "ray.cuh"
@@ -176,7 +177,11 @@ int main() {
 
     // Output FB as Image
 
-    std::ofstream outfile("test.ppm");
+    std::cout << "Enter name for output file: ";
+    std::string filename;
+    std::cin >> filename;
+    filename += ".ppm";
+    std::ofstream outfile(filename.c_str());
 
     // Output FB as Image
     outfile << "P3\n" << nx << " " << ny << "\n255\n";
@@ -190,12 +195,17 @@ int main() {
         }
     }
 
-    int x, y;
-    std::cin >> x >> y;
-    while (x >= 0 && y >= 0) {
-        debugRay<<<1, 1>>>(x, y, nx, ny, scene);
-        checkCudaErrors(cudaDeviceSynchronize());
+    std::cout << "Would you like to enter debug mode (y/n)? ";
+    std::string response;
+    std::cin >> response;
+    if (response.size() > 0 && (response[0] == 'y' || response[0] == 'Y')) {
+        int x, y;
         std::cin >> x >> y;
+        while (x >= 0 && y >= 0) {
+            debugRay<<<1, 1>>>(x, y, nx, ny, scene);
+            checkCudaErrors(cudaDeviceSynchronize());
+            std::cin >> x >> y;
+        }
     }
 
     checkCudaErrors(cudaFree(fb));

@@ -7,7 +7,3 @@ A file name will be prompted, you can find scenes in the Scene folder e.g. "Scen
 An output name will be prompted, and the image be outputed as a .ppm file
 An option to enter debug mode will be given
 In debug mode, (x, y) coordinates (space separated e.g "600 800") will be prompted to trace an individual pixel
-
-Also, we submitted the survey
-
-members: Liam Nickell, Justin Xie
